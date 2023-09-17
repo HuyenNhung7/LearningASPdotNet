@@ -1,3 +1,6 @@
+// Khi dùng model, luôn phải gọi cái này, nhưng giờ chỉ cần gọi 1 lần thôi
+global using LearningASPdotNet.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
