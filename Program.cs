@@ -1,6 +1,8 @@
 // Khi dùng model, luôn phải gọi cái này, nhưng giờ chỉ cần gọi 1 lần thôi
 global using LearningASPdotNet.Models;
-
+global using LearningASPdotNet.Services.CharacterService;
+global using LearningASPdotNet.Dtos.Character; 
+ 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +13,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 // Thêm dịch vụ để tạo tài liệu API dựa trên Swagger/OpenAPI.
 builder.Services.AddSwaggerGen();
+
+// typeof(Program).Assembly cái này lấy ra assembly (tập tin .dll) mà Program thuộc về.
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+// Thêm vào dịch vụ chúng ta tạo nè với lifetime là scoped
+builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 // bước khởi tạo thực sự cho ứng dụng web
 var app = builder.Build();
