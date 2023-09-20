@@ -2,10 +2,15 @@
 global using LearningASPdotNet.Models;
 global using LearningASPdotNet.Services.CharacterService;
 global using LearningASPdotNet.Dtos.Character; 
- 
+global using Microsoft.EntityFrameworkCore;
+using LearningASPdotNet.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Đăng ký các controllers để xử lý các yêu cầu HTTP
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

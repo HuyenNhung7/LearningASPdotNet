@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LearningASPdotNet.Data;
 
 namespace LearningASPdotNet.Services.CharacterService
 {
@@ -14,9 +15,11 @@ namespace LearningASPdotNet.Services.CharacterService
             new Character {Id = 1, Name = "Sam"}
         };
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
 
-        public CharacterService(IMapper mapper)
+        public CharacterService(IMapper mapper, DataContext context)
         {
+            _context = context;
             _mapper = mapper;
         }
 
@@ -24,9 +27,16 @@ namespace LearningASPdotNet.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var character = _mapper.Map<Character>(newCharacter);
+            var dbCharacter =  _context.Characters;
+            await dbCharacter.AddAsync(character);
+            await _context.SaveChangesAsync();
+            // var dbCharacter = await _context.Characters.AddAsync(character);
+            Console.WriteLine($"dbCharacter là {dbCharacter}");
             character.Id = characters.Max(c => c.Id) + 1;
-            characters.Add(character);
-            serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(characters);
+            // characters.Add(character);
+            // serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(characters);
+            var Characters = await _context.Characters.ToListAsync();
+            serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(Characters);
             return serviceResponse;
         }
 
@@ -35,11 +45,16 @@ namespace LearningASPdotNet.Services.CharacterService
              var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == id);
+                // var character = characters.FirstOrDefault(c => c.Id == id);
+                var dbCharacter = _context.Characters;
+                var character = await dbCharacter.FirstOrDefaultAsync(c => c.Id == id);
                 if(character is null)
                     throw new Exception($"Character with Id '{id}' not found.");
-                characters.Remove(character);
-                serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(characters);
+                // characters.Remove(character);
+                dbCharacter.Remove(character);
+                await _context.SaveChangesAsync();
+                var Characters = await dbCharacter.ToListAsync();
+                serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(Characters);
                 // serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             }
             catch (Exception ex)
@@ -54,7 +69,8 @@ namespace LearningASPdotNet.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            var dbCharacters = await _context.Characters.ToListAsync();
+            serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             // serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(characters);
             return serviceResponse;
         }
@@ -62,8 +78,8 @@ namespace LearningASPdotNet.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
             return serviceResponse;
             // throw new Exception("Character not found");
         }
